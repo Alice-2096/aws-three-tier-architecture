@@ -109,6 +109,7 @@ resource "aws_launch_configuration" "backend-launch_configuration" {
 
 ////////////////////// Auto Scaling Group ////////////////////////
 resource "aws_autoscaling_group" "frontend" {
+  name                 = "frontend-asg"
   desired_capacity     = var.frontend_instance_count
   max_size             = var.frontend_instance_count
   min_size             = var.frontend_instance_count
@@ -117,6 +118,7 @@ resource "aws_autoscaling_group" "frontend" {
 }
 
 resource "aws_autoscaling_group" "backend" {
+  name                 = "backend-asg"
   desired_capacity     = var.backend_instance_count
   max_size             = var.backend_instance_count
   min_size             = var.backend_instance_count

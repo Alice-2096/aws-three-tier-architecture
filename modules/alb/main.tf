@@ -74,7 +74,7 @@ resource "aws_lb_target_group" "target_group_frontend" {
     path     = "/"
     protocol = "HTTP"
     port     = "80"
-    interval = 300
+    interval = 10
   }
 }
 
@@ -89,7 +89,7 @@ resource "aws_lb_target_group" "target_group_backend" {
     path     = "/"
     protocol = "HTTP"
     port     = "3000"
-    interval = 300
+    interval = 10
   }
 }
 
