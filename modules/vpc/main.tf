@@ -9,7 +9,8 @@ module "vpc" {
   cidr                         = var.vpc_cidr_block
   azs                          = var.vpc_availability_zones
   public_subnets               = var.vpc_public_subnets
-  private_subnets              = var.vpc_private_subnets
+  private_subnets              = var.vpc_private_subnets_frontend
+  database_subnets             = var.database_subnets
   create_database_subnet_group = var.vpc_create_database_subnet_group
 
   map_public_ip_on_launch = true
@@ -34,6 +35,24 @@ module "vpc" {
   }
   private_subnet_tags = {
     Type = "Private Subnets"
+  }
+}
+
+resource "aws_subnet" "private_subnet_backend" {
+  count                   = length(var.vpc_private_subnets_backend)
+  vpc_id                  = module.vpc.vpc_id
+  cidr_block              = var.vpc_private_subnets_backend[count.index]
+  availability_zone       = var.vpc_availability_zones[count.index]
+  map_public_ip_on_launch = false
+  tags                    = { Type = "Private Subnets backend" }
+
+}
+
+resource "aws_route_table" "private_route_table_backend" {
+  vpc_id = module.vpc.vpc_id
+
+  tags = {
+    Name = "Private Route Table for Backend"
   }
 }
 

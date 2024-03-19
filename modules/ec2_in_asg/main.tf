@@ -4,16 +4,18 @@ resource "aws_security_group" "frontend" {
   description = "Allow inbound traffic from ALB"
   vpc_id      = var.vpc_id
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = [var.frontend_alb_ip]
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
+    # cidr_blocks = [var.frontend_alb_ip] 
+    cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = [var.backend_alb_ip]
+    from_port = 3000
+    to_port   = 3000
+    protocol  = "tcp"
+    # cidr_blocks = [var.backend_alb_ip]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -22,16 +24,17 @@ resource "aws_security_group" "backend" {
   description = "Allow inbound traffic from backend ALB"
   vpc_id      = var.vpc_id
   ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = [var.backend_alb_ip]
+    from_port = 3000
+    to_port   = 3000
+    protocol  = "tcp"
+    # cidr_blocks = [var.backend_alb_ip]
+    cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
     from_port   = var.db_port
     to_port     = var.db_port
     protocol    = "tcp"
-    cidr_blocks = [var.db_subnet_ip]
+    cidr_blocks = var.db_subnet_cidr_block
   }
 }
 
@@ -39,33 +42,36 @@ resource "aws_security_group" "backend" {
 ////////////////////// EC2 instance //////////////////////// 
 resource "aws_instance" "frontend" {
   count         = var.frontend_instance_count
-  ami           = var.frontend_ami_id
+  ami           = data.aws_ami.linux2.id
   instance_type = "t3.micro"
+  subnet_id     = var.private_subnet_frontend[count.index]
 
   tags = {
     Name = "frontend-${count.index + 1}"
   }
-  security_groups = [aws_security_group.frontend.id]
-  user_data       = file("user-data.sh")
+
+  vpc_security_group_ids = [aws_security_group.frontend.id]
+  user_data              = file("user-data.sh")
 }
 
 resource "aws_instance" "backend" {
   count         = var.backend_instance_count
-  ami           = var.backend_ami_id
+  ami           = data.aws_ami.linux2.id
   instance_type = "t3.micro"
+  subnet_id     = var.private_subnet_backend[count.index]
 
   tags = {
     Name = "backend-${count.index + 1}"
   }
-  security_groups = [aws_security_group.backend.id]
-  user_data       = file("user-data.sh")
+  vpc_security_group_ids = [aws_security_group.backend.id]
+  user_data              = file("user-data.sh")
 }
 
 ////////////////////// launch configuration ////////////////////////
 # ASG requires a launch configuration to launch instances in the group.
 resource "aws_launch_configuration" "frontend-launch_configuration" {
   name_prefix     = var.project_name
-  image_id        = var.frontend_ami_id
+  image_id        = data.aws_ami.linux2.id
   instance_type   = "t2.micro"
   user_data       = file("user-data.sh")
   security_groups = [aws_security_group.frontend.id]
@@ -77,7 +83,7 @@ resource "aws_launch_configuration" "frontend-launch_configuration" {
 
 resource "aws_launch_configuration" "backend-launch_configuration" {
   name_prefix     = var.project_name
-  image_id        = var.backend_ami_id
+  image_id        = data.aws_ami.linux2.id
   instance_type   = "t2.micro"
   user_data       = file("user-data.sh")
   security_groups = [aws_security_group.backend.id]

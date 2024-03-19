@@ -1,6 +1,6 @@
 //////////////////////// security group for alb ////////////////////////
 resource "aws_security_group" "sg-for-frontend_alb" {
-  name        = "alb-sg"
+  name        = "alb-sg-frontend"
   description = "Allow HTTP inbound traffic"
   vpc_id      = var.vpc_id
 
@@ -8,7 +8,7 @@ resource "aws_security_group" "sg-for-frontend_alb" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.private_subnet_frontend]
+    cidr_blocks = var.private_subnet_frontend
   }
 
   ingress { # allow HTTP traffic from anywhere 
@@ -27,7 +27,7 @@ resource "aws_security_group" "sg-for-frontend_alb" {
 }
 
 resource "aws_security_group" "sg-for-backend_alb" {
-  name   = "alb-sg"
+  name   = "alb-sg-backend"
   vpc_id = var.vpc_id
 
   ingress { # only allow traffic from the frontend security group on port 3000 
@@ -41,17 +41,16 @@ resource "aws_security_group" "sg-for-backend_alb" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.private_subnet_frontend]
+    cidr_blocks = var.private_subnet_frontend
   }
 }
-
 
 //////////////////////// alb ////////////////////////
 resource "aws_alb" "alb-for-frontend" {
   name               = "${var.project_name}-frontend-alb"
   internal           = false
   load_balancer_type = "application"
-  subnets            = var.private_subnet_frontend
+  subnets            = var.private_subnet_frontend_ids # frontend subnet ids 
   security_groups    = [aws_security_group.sg-for-frontend_alb.id]
 }
 
@@ -59,13 +58,13 @@ resource "aws_alb" "alb-for-backend" {
   name               = "${var.project_name}-backend-alb"
   internal           = true
   load_balancer_type = "application"
-  subnets            = var.private_subnet_backend
+  subnets            = var.private_subnet_backend_ids
   security_groups    = [aws_security_group.sg-for-backend_alb.id]
 }
 
 //////////////////////// target group ////////////////////////
 resource "aws_lb_target_group" "target_group_frontend" {
-  name        = "${var.project_name}-target-group"
+  name        = "${var.project_name}-target-group-frontend"
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
@@ -80,7 +79,7 @@ resource "aws_lb_target_group" "target_group_frontend" {
 }
 
 resource "aws_lb_target_group" "target_group_backend" {
-  name        = "${var.project_name}-target-group"
+  name        = "${var.project_name}-target-group-backend"
   port        = 3000
   protocol    = "HTTP"
   target_type = "ip"

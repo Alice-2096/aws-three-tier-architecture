@@ -33,17 +33,26 @@ variable "vpc_public_subnets" {
 }
 
 # VPC Private Subnets
-variable "vpc_private_subnets" {
+variable "vpc_private_subnets_frontend" {
   description = "VPC Private Subnets"
   type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
+variable "vpc_private_subnets_backend" {
+  default = ["10.0.3.0/24", "10.0.4.0/24"]
+}
 # VPC Create Database Subnet Group (True / False)
 variable "vpc_create_database_subnet_group" {
   description = "VPC Create Database Subnet Group"
   type        = bool
   default     = true
+}
+
+variable "database_subnets" {
+  description = "VPC Database Subnets"
+  type        = list(string)
+  default     = ["10.0.5.0/24", "10.0.6.0/24"]
 }
 
 # VPC Enable NAT Gateway (True or False) 
