@@ -124,13 +124,6 @@ resource "aws_autoscaling_group" "backend" {
   vpc_zone_identifier  = var.private_subnet_backend
 }
 
-////////////////////// outputs ////////////////////////
-output "frontend_instance_id" {
-  value = aws_instance.frontend[*].id
-}
-output "backend_instance_id" {
-  value = aws_instance.backend[*].id
-}
 
 ////////////////////// IAM for EC2 ////////////////////////
 resource "aws_iam_instance_profile" "ec2-iam-profile" {

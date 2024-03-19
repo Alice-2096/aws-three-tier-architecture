@@ -37,6 +37,8 @@ module "alb" {
   private_subnet_backend_ids  = module.vpc.private_subnets_backend_ids
   private_subnet_frontend_ids = module.vpc.private_subnets_frontend_ids
   project_name                = var.project_name
+  frontend_ec2_ips            = module.ec2_in_asg.frontend_ec2_ips
+  backend_ec2_ips             = module.ec2_in_asg.backend_ec2_ips
 }
 
 module "ec2_in_asg" {

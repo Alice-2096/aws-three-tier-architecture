@@ -12,3 +12,9 @@ variable "private_subnet_frontend_ids" {
 variable "private_subnet_backend_ids" {
 
 }
+variable "frontend_ec2_ips" {
+
+}
+variable "backend_ec2_ips" {
+
+}

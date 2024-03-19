@@ -93,6 +93,19 @@ resource "aws_lb_target_group" "target_group_backend" {
   }
 }
 
+
+resource "aws_lb_target_group_attachment" "tg_attachment_frontend" {
+  count            = length(var.frontend_ec2_ips)
+  target_group_arn = aws_lb_target_group.target_group_frontend.arn
+  target_id        = var.frontend_ec2_ips[count.index]
+}
+
+resource "aws_lb_target_group_attachment" "tg_attachment_backend" {
+  count            = length(var.backend_ec2_ips)
+  target_group_arn = aws_lb_target_group.target_group_backend.arn
+  target_id        = var.backend_ec2_ips[count.index]
+}
+
 //////////////////////// listener ////////////////////////
 resource "aws_lb_listener" "listener_frontend" {
   depends_on        = [aws_lb_target_group.target_group_frontend]
