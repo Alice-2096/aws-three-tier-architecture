@@ -17,6 +17,13 @@ resource "aws_security_group" "frontend" {
     # cidr_blocks = [var.backend_alb_ip]
     cidr_blocks = ["0.0.0.0/0"]
   }
+  egress {
+    from_port = 443 # connection to SSM endpoints
+    to_port   = 443
+    protocol  = "tcp"
+    # cidr_blocks = [var.backend_alb_ip]
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_security_group" "backend" {
@@ -36,6 +43,12 @@ resource "aws_security_group" "backend" {
     protocol    = "tcp"
     cidr_blocks = var.db_subnet_cidr_block
   }
+  egress {
+    from_port   = 443 # connection to SSM endpoints
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 
@@ -49,7 +62,7 @@ resource "aws_instance" "frontend" {
   tags = {
     Name = "frontend-${count.index + 1}"
   }
-
+  iam_instance_profile   = aws_iam_instance_profile.ec2-iam-profile.name
   vpc_security_group_ids = [aws_security_group.frontend.id]
   user_data              = file("user-data.sh")
 }
@@ -63,6 +76,7 @@ resource "aws_instance" "backend" {
   tags = {
     Name = "backend-${count.index + 1}"
   }
+  iam_instance_profile   = aws_iam_instance_profile.ec2-iam-profile.name
   vpc_security_group_ids = [aws_security_group.backend.id]
   user_data              = file("user-data.sh")
 }
@@ -116,4 +130,29 @@ output "frontend_instance_id" {
 }
 output "backend_instance_id" {
   value = aws_instance.backend[*].id
+}
+
+////////////////////// IAM for EC2 ////////////////////////
+resource "aws_iam_instance_profile" "ec2-iam-profile" {
+  name = "ec2_profile"
+  role = aws_iam_role.ec2-iam-role.name
+}
+
+resource "aws_iam_role" "ec2-iam-role" {
+  name               = "dev-ssm-role"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+  "Effect": "Allow",
+  "Principal": {"Service": "ec2.amazonaws.com"},
+  "Action": "sts:AssumeRole"
+  }
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "ssm-policy" {
+  role       = aws_iam_role.ec2-iam-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }

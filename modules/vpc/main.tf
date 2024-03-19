@@ -45,7 +45,6 @@ resource "aws_subnet" "private_subnet_backend" {
   availability_zone       = var.vpc_availability_zones[count.index]
   map_public_ip_on_launch = false
   tags                    = { Type = "Private Subnets backend" }
-
 }
 
 resource "aws_route_table" "private_route_table_backend" {
@@ -54,6 +53,17 @@ resource "aws_route_table" "private_route_table_backend" {
   tags = {
     Name = "Private Route Table for Backend"
   }
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = module.vpc.natgw_ids[0]
+  }
+}
+
+resource "aws_route_table_association" "private_subnet_association_backend" {
+  count          = length(var.vpc_private_subnets_backend)
+  subnet_id      = aws_subnet.private_subnet_backend[count.index].id
+  route_table_id = aws_route_table.private_route_table_backend.id
 }
 
 locals {
@@ -63,12 +73,5 @@ locals {
   }
 }
 
-resource "aws_route_table" "public" {
-  vpc_id = module.vpc.vpc_id
-}
 
-resource "aws_route" "public" {
-  route_table_id         = aws_route_table.public.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = module.vpc.igw_id
-}
+
