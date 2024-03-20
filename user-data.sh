@@ -6,4 +6,3 @@ sudo dpkg -i amazon-ssm-agent.deb
 sudo systemctl enable amazon-ssm-agent
 rm amazon-ssm-agent.deb
 
-

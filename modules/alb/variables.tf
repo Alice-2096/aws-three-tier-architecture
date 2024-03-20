@@ -18,3 +18,6 @@ variable "frontend_ec2_ips" {
 variable "backend_ec2_ips" {
 
 }
+variable "acm_certificate_arn" {
+
+}

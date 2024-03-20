@@ -29,3 +29,7 @@ variable "frontend_ami_id" {
 variable "backend_ami_id" {
   default = "ami-0e0bf53f6def86294"
 }
+variable "domain_name" {
+  description = "The domain name to use for the DNS zone"
+  type        = string
+}
